@@ -15,8 +15,6 @@ import scipy.misc
 
 def identity_block(X, f, filters, stage, block):
     """
-    Implementation of the identity block as defined in Figure 3
-    
     Arguments:
     X -- input tensor of shape (m, n_H_prev, n_W_prev, n_C_prev)
     f -- integer, specifying the shape of the middle CONV's window for the main path
@@ -35,24 +33,19 @@ def identity_block(X, f, filters, stage, block):
     # Retrieve Filters
     F1, F2, F3 = filters
     
-    # Save the input value.
     X_shortcut = X
     
-    # First component of main path
     X = Conv2D(filters = F1, kernel_size = (1, 1), strides = (1,1), padding = 'valid', name = conv_name_base + '2a', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
     
-    # Second component of main path (≈3 lines)
     X = Conv2D(filters = F2, kernel_size = (f,f), strides = (1,1), padding = "same", name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
-    # Third component of main path (≈2 lines)
     X = Conv2D(filters = F3, kernel_size = (1,1), strides = (1,1), padding = "valid", name = conv_name_base + '2c', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2c')(X)
 
-    # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
     X = Add()([X, X_shortcut])
     X = Activation('relu')(X)
     
@@ -60,8 +53,6 @@ def identity_block(X, f, filters, stage, block):
 
 def convolutional_block(X, f, filters, stage, block, s = 2):
     """
-    Implementation of the convolutional block as defined in Figure 4
-    
     Arguments:
     X -- input tensor of shape (m, n_H_prev, n_W_prev, n_C_prev)
     f -- integer, specifying the shape of the middle CONV's window for the main path
@@ -84,26 +75,20 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
     # Save the input value
     X_shortcut = X
 
-    ##### MAIN PATH #####
-    # First component of main path 
     X = Conv2D(F1, (1, 1), strides = (s,s), padding='valid', name = conv_name_base + '2a', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    # Second component of main path (≈3 lines)
     X = Conv2D(F2, (f, f), strides = (1,1), padding='same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
-    # Third component of main path (≈2 lines)
     X = Conv2D(F3, (1, 1), strides = (1,1), padding='valid', name = conv_name_base + '2c', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2c')(X)
 
-    ##### SHORTCUT PATH #### (≈2 lines)
     X_shortcut = Conv2D(F3, (1, 1), strides = (s,s), padding='valid', name = conv_name_base + '1', kernel_initializer = glorot_uniform(seed=0))(X_shortcut)
     X_shortcut = BatchNormalization(axis = 3, name = bn_name_base + '1')(X_shortcut)
 
-    # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
     X = Add()([X_shortcut,X])
     X = Activation('relu')(X)
     
@@ -111,7 +96,6 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
 
 def ResNet50(input_shape = (64, 64, 3), classes = 6):
     """
-    Implementation of the popular ResNet50 the following architecture:
     CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
     -> CONVBLOCK -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2 -> AVGPOOL -> TOPLAYER
 
@@ -126,7 +110,6 @@ def ResNet50(input_shape = (64, 64, 3), classes = 6):
     # Define the input as a tensor with shape input_shape
     X_input = Input(input_shape)
 
-    
     # Zero-Padding
     X = ZeroPadding2D((3, 3))(X_input)
     
@@ -172,3 +155,4 @@ def ResNet50(input_shape = (64, 64, 3), classes = 6):
     model = Model(inputs = X_input, outputs = X, name='ResNet50')
 
     return model
+
